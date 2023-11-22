@@ -1,0 +1,2 @@
+SUPA_PROJECT_URL=supa_project_url
+SUPA_ANON_KEY=supa_anon_key
