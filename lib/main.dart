@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() async {
+Future<void> main() async {
   await dotenv.load(fileName: ".env"); // Load .env variables
+
+  // Initialize supabase
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: dotenv.env['SUPA_PROJECT_URL'] ?? '',
+    anonKey: dotenv.env['SUPA_ANON_KEY'] ?? '',
+  );
 
   runApp(const MixupApp());
 }
@@ -60,6 +68,25 @@ class LevelSelect extends StatefulWidget {
 }
 
 class _LevelSelectState extends State<LevelSelect> {
+  final supabase = Supabase.instance.client;
+  List<String>? levels;
+
+  @override
+  void initState() {
+    super.initState();
+    _getLevels();
+  }
+
+  Future<void> _getLevels() async {
+    final response = await supabase.from('levels').select('name');
+    if (response != null) {
+      setState(() {
+        levels =
+            (response as List).map((item) => item['name'].toString()).toList();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,8 +95,9 @@ class _LevelSelectState extends State<LevelSelect> {
         foregroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text("Select level"),
       ),
-      body: ListView(
-        children: const [Text('Test'), Text('Test 2')],
+      body: ListView.builder(
+        itemCount: levels?.length ?? 0,
+        itemBuilder: (context, index) => Text(levels?[index] ?? ''),
       ),
     );
   }
