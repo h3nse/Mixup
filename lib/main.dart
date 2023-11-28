@@ -1,4 +1,4 @@
-import 'dart:ffi';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -151,7 +151,15 @@ class _LevelSelectState extends State<LevelSelect> {
                 title: Text(games[index]['name']),
                 subtitle: const Text("player count: "),
                 onTap: () {
-                  _addPlayerToLevel(games[index]['id']);
+                  final gameid = games[index]['id'];
+                  _addPlayerToLevel(gameid);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => GameLobby(
+                              gameID: gameid,
+                            )),
+                  );
                 },
               );
             },
@@ -162,16 +170,42 @@ class _LevelSelectState extends State<LevelSelect> {
   }
 }
 
+class Level {
+  String name = '';
+  int gameDuration = 0;
+  Map<String, dynamic> dishes = {};
+}
+
 class GameLobby extends StatefulWidget {
-  const GameLobby({super.key});
+  final int gameID;
+  const GameLobby({super.key, required this.gameID});
 
   @override
   State<GameLobby> createState() => _GameLobbyState();
 }
 
 class _GameLobbyState extends State<GameLobby> {
+  final supabase = Supabase.instance.client;
+  final level = Level();
+
+  void _getLevel() async {
+    final levelID =
+        await supabase.from('games').select('level_id').eq('id', widget.gameID);
+    final _level = await supabase
+        .from('levels')
+        .select('name, game_duration, dishes')
+        .eq('id', levelID[0]['level_id'])
+        .single();
+
+    level.name = _level['name'];
+    level.gameDuration = _level['game_duration'];
+    level.dishes = _level['dishes'];
+    setState(() {});
+  }
+
   @override
   void initState() {
+    _getLevel();
     super.initState();
   }
 
@@ -181,7 +215,7 @@ class _GameLobbyState extends State<GameLobby> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Select game"),
+        title: Text(level.name),
       ),
     );
   }
