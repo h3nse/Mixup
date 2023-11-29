@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:mixup_app/barcode_scanner.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env"); // Load .env variables
@@ -156,7 +156,7 @@ class _LevelSelectState extends State<LevelSelect> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => GameLobby(
+                        builder: (context) => Game(
                               gameID: gameid,
                             )),
                   );
@@ -176,30 +176,31 @@ class Level {
   Map<String, dynamic> dishes = {};
 }
 
-class GameLobby extends StatefulWidget {
+class Game extends StatefulWidget {
   final int gameID;
-  const GameLobby({super.key, required this.gameID});
+  const Game({super.key, required this.gameID});
 
   @override
-  State<GameLobby> createState() => _GameLobbyState();
+  State<Game> createState() => _GameState();
 }
 
-class _GameLobbyState extends State<GameLobby> {
-  final supabase = Supabase.instance.client;
+class _GameState extends State<Game> {
   final level = Level();
+  var gameState = 'Lobby';
+  final supabase = Supabase.instance.client;
 
   void _getLevel() async {
     final levelID =
         await supabase.from('games').select('level_id').eq('id', widget.gameID);
-    final _level = await supabase
+    final dbLevel = await supabase
         .from('levels')
         .select('name, game_duration, dishes')
         .eq('id', levelID[0]['level_id'])
         .single();
 
-    level.name = _level['name'];
-    level.gameDuration = _level['game_duration'];
-    level.dishes = _level['dishes'];
+    level.name = dbLevel['name'];
+    level.gameDuration = dbLevel['game_duration'];
+    level.dishes = dbLevel['dishes'];
     setState(() {});
   }
 
@@ -209,14 +210,174 @@ class _GameLobbyState extends State<GameLobby> {
     super.initState();
   }
 
+  void _startGame() async {
+    await supabase
+        .from('games')
+        .update({'game_state': 'Running'}).eq('id', widget.gameID);
+    setState(() {
+      gameState = 'Running'; // For testing
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget page = const Placeholder();
+    switch (gameState) {
+      case 'Lobby':
+        page = Lobby(
+          levelName: level.name,
+          startFunction: _startGame,
+        );
+        break;
+      case 'Running':
+        page = GameRunning();
+        break;
+      case 'Ending':
+        break;
+    }
+    return page;
+  }
+}
+
+class Lobby extends StatelessWidget {
+  const Lobby(
+      {super.key, required this.levelName, required this.startFunction});
+
+  final String levelName;
+  final Function startFunction;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(level.name),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(levelName)),
+      body: ElevatedButton(
+          onPressed: () {
+            startFunction();
+          },
+          child: const Text('Start')),
+    );
+  }
+}
+
+class GameRunning extends StatefulWidget {
+  const GameRunning({super.key});
+
+  @override
+  State<GameRunning> createState() => _GameRunningState();
+}
+
+class _GameRunningState extends State<GameRunning> {
+  String heldItem = '';
+  String itemDeclaration = '<item>';
+  String processDeclaration = '<process>';
+
+  void _setItem(String item) {
+    setState(() {
+      heldItem = item;
+    });
+  }
+
+  void _handleItemScan(String scannedItem) {
+    if (heldItem != '') {
+      return;
+    } else {
+      _setItem(scannedItem);
+    }
+  }
+
+  void _handleProcessScan(String scannedProcess) {}
+
+  void _handleScan(String res) {
+    if (itemDeclaration.matchAsPrefix(res) != null) {
+      res = res.replaceAll('<item>', '');
+
+      _handleItemScan(res);
+    } else if (processDeclaration.matchAsPrefix(res) != null) {
+      res = res.replaceAll('<process>', '');
+      _handleProcessScan(res);
+    }
+  }
+
+  Image _getImageFromID(String id) {
+    String imagePath = '';
+    switch (id) {
+      case 'Tomato':
+        {
+          imagePath = 'assets/Tomato.webp';
+        }
+        break;
+
+      case 'Spaghetti':
+        {
+          imagePath = 'assets/Spaghetti.jpg';
+        }
+        break;
+
+      default:
+        {
+          imagePath = 'assets/No_item.gif';
+        }
+    }
+    return Image.asset(imagePath);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const DishPreview(),
+          _getImageFromID(heldItem),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  String? result = await Navigator.of(context).push<String>(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const BarcodeScannerWithoutController(),
+                    ),
+                  );
+                  if (result != null) {
+                    _handleScan(result);
+                  }
+                },
+                child: const Text("Scan"),
+              ),
+              const SizedBox(
+                width: 50,
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    _setItem('');
+                  },
+                  child: const Text('Discard item'))
+            ],
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class DishPreview extends StatefulWidget {
+  const DishPreview({super.key});
+
+  @override
+  State<DishPreview> createState() => _DishPreviewState();
+}
+
+class _DishPreviewState extends State<DishPreview> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 50,
+      width: 100,
     );
   }
 }
