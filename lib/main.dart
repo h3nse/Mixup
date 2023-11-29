@@ -230,7 +230,7 @@ class _GameState extends State<Game> {
         );
         break;
       case 'Running':
-        page = GameRunning();
+        page = const GameRunning();
         break;
       case 'Ending':
         break;
@@ -273,6 +273,11 @@ class _GameRunningState extends State<GameRunning> {
   String heldItem = '';
   String itemDeclaration = '<item>';
   String processDeclaration = '<process>';
+  final items = {
+    'Tomato': ['cut'],
+    'Spaghetti': ['boil'],
+    'Meat': ['cut', 'fry']
+  };
 
   void _setItem(String item) {
     setState(() {
@@ -288,12 +293,16 @@ class _GameRunningState extends State<GameRunning> {
     }
   }
 
-  void _handleProcessScan(String scannedProcess) {}
+  void _handleProcessScan(String scannedProcess) {
+    if (items[heldItem]?.contains(scannedProcess) ?? false) {
+      heldItem = "${heldItem}_$scannedProcess";
+      setState(() {});
+    }
+  }
 
   void _handleScan(String res) {
     if (itemDeclaration.matchAsPrefix(res) != null) {
       res = res.replaceAll('<item>', '');
-
       _handleItemScan(res);
     } else if (processDeclaration.matchAsPrefix(res) != null) {
       res = res.replaceAll('<process>', '');
@@ -301,25 +310,12 @@ class _GameRunningState extends State<GameRunning> {
     }
   }
 
-  Image _getImageFromID(String id) {
-    String imagePath = '';
-    switch (id) {
-      case 'Tomato':
-        {
-          imagePath = 'assets/Tomato.webp';
-        }
-        break;
-
-      case 'Spaghetti':
-        {
-          imagePath = 'assets/Spaghetti.jpg';
-        }
-        break;
-
-      default:
-        {
-          imagePath = 'assets/No_item.gif';
-        }
+  Image _getImageFromItem() {
+    String imagePath = 'assets/$heldItem.jpg';
+    if (heldItem == '') {
+      imagePath = 'assets/No_item.jpg';
+    } else {
+      imagePath = 'assets/$heldItem.jpg';
     }
     return Image.asset(imagePath);
   }
@@ -331,7 +327,7 @@ class _GameRunningState extends State<GameRunning> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const DishPreview(),
-          _getImageFromID(heldItem),
+          _getImageFromItem(),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -375,7 +371,7 @@ class DishPreview extends StatefulWidget {
 class _DishPreviewState extends State<DishPreview> {
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return const SizedBox(
       height: 50,
       width: 100,
     );
