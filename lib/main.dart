@@ -297,29 +297,19 @@ class _GameRunningState extends State<GameRunning> {
     if (heldItem == '') {
       return;
     }
-    print('SORT OG heldItem: $heldItem');
     var splitItem = heldItem.split('_');
-    print('SORT splitItem: $splitItem');
     final rawItem = splitItem[0];
-    print('SORT rawItem: $rawItem');
-
-    print(
-        "SORT if statement result: ${!heldItem.contains(scannedProcess) && items[rawItem]!.contains(scannedProcess)}");
 
     if (!heldItem.contains(scannedProcess) &&
         items[rawItem]!.contains(scannedProcess)) {
       heldItem = "${heldItem}_$scannedProcess";
       var splitItem = heldItem.split('_');
-      print('SORT new heldItem: $heldItem');
       splitItem.remove(rawItem);
-      print('SORT split item with raw removed: $splitItem');
       splitItem.sort((a, b) {
         return a.compareTo(b);
       });
-      print('SORT sorted splitItem: $splitItem');
       splitItem.insert(0, rawItem);
       heldItem = splitItem.join("_");
-      print("SORT final heldItem: $heldItem");
 
       setState(() {});
     }
