@@ -271,8 +271,8 @@ class GameRunning extends StatefulWidget {
 
 class _GameRunningState extends State<GameRunning> {
   String heldItem = '';
-  String itemDeclaration = '<item>';
-  String processDeclaration = '<process>';
+  final itemDeclaration = '<item>';
+  final processDeclaration = '<process>';
   final items = {
     'Tomato': ['cut'],
     'Spaghetti': ['boil'],
@@ -297,13 +297,11 @@ class _GameRunningState extends State<GameRunning> {
     if (heldItem == '') {
       return;
     }
-    var splitItem = heldItem.split('_');
+    var splitItem = "${heldItem}_$scannedProcess".split('_');
     final rawItem = splitItem[0];
 
     if (!heldItem.contains(scannedProcess) &&
         items[rawItem]!.contains(scannedProcess)) {
-      heldItem = "${heldItem}_$scannedProcess";
-      var splitItem = heldItem.split('_');
       splitItem.remove(rawItem);
       splitItem.sort((a, b) {
         return a.compareTo(b);
@@ -315,13 +313,13 @@ class _GameRunningState extends State<GameRunning> {
     }
   }
 
-  void _handleScan(String res) {
-    if (itemDeclaration.matchAsPrefix(res) != null) {
-      res = res.replaceAll('<item>', '');
-      _handleItemScan(res);
-    } else if (processDeclaration.matchAsPrefix(res) != null) {
-      res = res.replaceAll('<process>', '');
-      _handleProcessScan(res);
+  void _handleScan(String scan) {
+    if (itemDeclaration.matchAsPrefix(scan) != null) {
+      scan = scan.replaceAll('<item>', '');
+      _handleItemScan(scan);
+    } else if (processDeclaration.matchAsPrefix(scan) != null) {
+      scan = scan.replaceAll('<process>', '');
+      _handleProcessScan(scan);
     }
   }
 
@@ -329,8 +327,6 @@ class _GameRunningState extends State<GameRunning> {
     String imagePath = 'assets/$heldItem.jpg';
     if (heldItem == '') {
       imagePath = 'assets/No_item.jpg';
-    } else {
-      imagePath = 'assets/$heldItem.jpg';
     }
     return Image.asset(imagePath);
   }
