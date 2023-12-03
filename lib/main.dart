@@ -15,11 +15,13 @@ Future<void> main() async {
     anonKey: dotenv.env['SUPA_ANON_KEY'] ?? '',
   );
 
-  Player().id = Random().nextInt(10000);
+  Player().id = Random()
+      .nextInt(10000); // Set player ID. Just a random number for testing.
 
   runApp(const MixupApp());
 }
 
+/// Singleton for storing local information about the player. Name could be removed in future passes.
 class Player {
   static final Player _instance = Player._internal("", 0);
   String name;
@@ -63,6 +65,7 @@ class _HomePageState extends State<HomePage> {
         .insert({'player_name': Player().name, 'id': Player().id});
   }
 
+  // Remove from memory(?) when route changes
   @override
   void dispose() {
     nameController.dispose();
@@ -117,13 +120,13 @@ class LevelSelect extends StatefulWidget {
 
 class _LevelSelectState extends State<LevelSelect> {
   final supabase = Supabase.instance.client;
-  final _gameStream =
-      Supabase.instance.client.from('games').stream(primaryKey: ['id']);
+  final _lobbyStream = Supabase.instance.client.from('lobbies').stream(
+      primaryKey: ['id']); // Subscribing to stream of updates from database.
 
-  void _addPlayerToLevel(int gameid) async {
+  void _addPlayerToLevel(int lobbyid) async {
     await supabase
-        .from('_players_games')
-        .insert({'player_id': Player().id, 'game_id': gameid});
+        .from('players')
+        .update({'lobby_id': lobbyid}).eq('id', Player().id);
   }
 
   @override
@@ -132,32 +135,33 @@ class _LevelSelectState extends State<LevelSelect> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Select game"),
+        title: const Text("Select lobby"),
       ),
       body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: _gameStream,
+        stream: _lobbyStream,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
-          final games = snapshot.data!;
+          final lobbies = snapshot.data!;
 
           return ListView.builder(
-            itemCount: games.length,
+            itemCount: lobbies.length,
             itemBuilder: (context, index) {
               return ListTile(
-                title: Text(games[index]['name']),
-                subtitle: const Text("player count: "),
+                title: Text(lobbies[index]['name']),
+                subtitle: const Text(
+                    "player count: "), // Doesnt actually display any number currently.
                 onTap: () {
-                  final gameid = games[index]['id'];
-                  _addPlayerToLevel(gameid);
+                  final lobbyid = lobbies[index]['id'];
+                  _addPlayerToLevel(lobbyid);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => Game(
-                              gameID: gameid,
+                              lobbyID: lobbyid,
                             )),
                   );
                 },
@@ -170,6 +174,7 @@ class _LevelSelectState extends State<LevelSelect> {
   }
 }
 
+/// For storing information about the current level.
 class Level {
   String name = '';
   int gameDuration = 0;
@@ -177,8 +182,8 @@ class Level {
 }
 
 class Game extends StatefulWidget {
-  final int gameID;
-  const Game({super.key, required this.gameID});
+  final int lobbyID;
+  const Game({super.key, required this.lobbyID});
 
   @override
   State<Game> createState() => _GameState();
@@ -189,14 +194,14 @@ class _GameState extends State<Game> {
   var gameState = 'Lobby';
   final supabase = Supabase.instance.client;
 
+  // Gets level details from database and assigns it to our level class.
   void _getLevel() async {
-    final levelID =
-        await supabase.from('games').select('level_id').eq('id', widget.gameID);
-    final dbLevel = await supabase
-        .from('levels')
-        .select('name, game_duration, dishes')
-        .eq('id', levelID[0]['level_id'])
+    var dbLevel = await supabase
+        .from('lobbies')
+        .select('levels(name, game_duration, dishes)')
+        .eq('id', widget.lobbyID)
         .single();
+    dbLevel = dbLevel['levels'];
 
     level.name = dbLevel['name'];
     level.gameDuration = dbLevel['game_duration'];
@@ -212,10 +217,11 @@ class _GameState extends State<Game> {
 
   void _startGame() async {
     await supabase
-        .from('games')
-        .update({'game_state': 'Running'}).eq('id', widget.gameID);
+        .from('lobbies')
+        .update({'game_state': 'Running'}).eq('id', widget.lobbyID);
     setState(() {
-      gameState = 'Running'; // For testing
+      // For testing. gameState should read from the database in the future.
+      gameState = 'Running';
     });
   }
 
@@ -239,7 +245,7 @@ class _GameState extends State<Game> {
   }
 }
 
-class Lobby extends StatelessWidget {
+class Lobby extends StatefulWidget {
   const Lobby(
       {super.key, required this.levelName, required this.startFunction});
 
@@ -247,17 +253,26 @@ class Lobby extends StatelessWidget {
   final Function startFunction;
 
   @override
+  State<Lobby> createState() => _LobbyState();
+}
+
+class _LobbyState extends State<Lobby> {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(levelName)),
-      body: ElevatedButton(
-          onPressed: () {
-            startFunction();
-          },
-          child: const Text('Start')),
+          title: Text(widget.levelName)),
+      body: Column(
+        children: [
+          ElevatedButton(
+              onPressed: () {
+                widget.startFunction();
+              },
+              child: const Text('Start')),
+        ],
+      ),
     );
   }
 }
@@ -273,6 +288,7 @@ class _GameRunningState extends State<GameRunning> {
   String heldItem = '';
   final itemDeclaration = '<item>';
   final processDeclaration = '<process>';
+  // All items in the game, and which processes can be used on them.
   final items = {
     'Tomato': ['cut'],
     'Spaghetti': ['boil'],
@@ -293,6 +309,7 @@ class _GameRunningState extends State<GameRunning> {
     }
   }
 
+  /// Formats the name of the item to include the process. Sorts processes alphabetically if there's multiple.
   void _handleProcessScan(String scannedProcess) {
     if (heldItem == '') {
       return;
@@ -313,6 +330,7 @@ class _GameRunningState extends State<GameRunning> {
     }
   }
 
+  /// The data in the QR-codes start with a declaration <> of what type they are.
   void _handleScan(String scan) {
     if (itemDeclaration.matchAsPrefix(scan) != null) {
       scan = scan.replaceAll('<item>', '');
@@ -323,6 +341,7 @@ class _GameRunningState extends State<GameRunning> {
     }
   }
 
+  /// Images are placed in /assets and are named after a naming convention.
   Image _getImageFromItem() {
     String imagePath = 'assets/$heldItem.jpg';
     if (heldItem == '') {
@@ -372,6 +391,7 @@ class _GameRunningState extends State<GameRunning> {
   }
 }
 
+/// Will eventually hold the current dish, but right now is just a placeholder.
 class DishPreview extends StatefulWidget {
   const DishPreview({super.key});
 
