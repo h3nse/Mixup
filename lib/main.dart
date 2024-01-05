@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mixup_app/barcode_scanner.dart';
+import 'dart:async';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env"); // Load .env variables
@@ -294,6 +295,8 @@ class _GameRunningState extends State<GameRunning> {
     'Spaghetti': ['boil'],
     'Meat': ['cut', 'fry']
   };
+  final processWait = {'cut': 3, 'fry': 6, 'boil': 10};
+  bool processing = false;
 
   void _setItem(String item) {
     setState(() {
@@ -309,6 +312,17 @@ class _GameRunningState extends State<GameRunning> {
     }
   }
 
+  void handleProcessTimeout(splitItem, rawItem) {
+    splitItem.remove(rawItem);
+    splitItem.sort((String a, String b) {
+      return a.compareTo(b);
+    });
+    splitItem.insert(0, rawItem);
+    heldItem = splitItem.join("_");
+    processing = false;
+    setState(() {});
+  }
+
   /// Formats the name of the item to include the process. Sorts processes alphabetically if there's multiple.
   void _handleProcessScan(String scannedProcess) {
     if (heldItem == '') {
@@ -319,14 +333,11 @@ class _GameRunningState extends State<GameRunning> {
 
     if (!heldItem.contains(scannedProcess) &&
         items[rawItem]!.contains(scannedProcess)) {
-      splitItem.remove(rawItem);
-      splitItem.sort((a, b) {
-        return a.compareTo(b);
+      setState(() {
+        processing = true;
       });
-      splitItem.insert(0, rawItem);
-      heldItem = splitItem.join("_");
-
-      setState(() {});
+      Timer(Duration(seconds: processWait[scannedProcess] ?? 0),
+          () => handleProcessTimeout(splitItem, rawItem));
     }
   }
 
@@ -356,6 +367,7 @@ class _GameRunningState extends State<GameRunning> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          (processing) ? const Text('Processing...') : Container(),
           const DishPreview(),
           _getImageFromItem(),
           Row(
