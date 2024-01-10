@@ -293,8 +293,33 @@ class _GameRunningState extends State<GameRunning> {
   final items = {
     'Tomato': ['cut'],
     'Spaghetti': ['boil'],
-    'Meat': ['cut', 'fry']
-  };
+    'Meat': ['cut', 'fry'],
+    'Egg': [
+      {
+        'prerequisites': {
+          'cut': ['boil'],
+        },
+        'negative prerequisites': {
+          'fry': ['boil']
+        }
+      },
+      'cut',
+      'fry',
+      'boil'
+    ],
+    'Cheese': [
+      {
+        'prerequisites': {
+          'fry': ['cut']
+        },
+        'negative prerequisites': {}
+      },
+      'cut',
+      'fry'
+    ],
+    'Salad': ['cut']
+  }; // TO DO Make class
+
   final processWait = {'cut': 3, 'fry': 6, 'boil': 10};
   bool processing = false;
 
@@ -331,10 +356,32 @@ class _GameRunningState extends State<GameRunning> {
     var splitItem = "${heldItem}_$scannedProcess".split('_');
     final rawItem = splitItem[0];
 
+    if (items[rawItem]![0] is Map) {
+      var prerequisitesMap = items[rawItem]![0] as Map;
+      var prerequisites = prerequisitesMap['prerequisites'][scannedProcess];
+      if (prerequisites != null) {
+        for (var prerequisite in prerequisites) {
+          if (!splitItem.contains(prerequisite)) {
+            return;
+          }
+        }
+      }
+      var negPrerequisites =
+          prerequisitesMap['negative prerequisites'][scannedProcess];
+      if (negPrerequisites != null) {
+        for (var negPrerequisite in negPrerequisites) {
+          if (splitItem.contains(negPrerequisite)) {
+            return;
+          }
+        }
+      }
+    }
+
     if (!heldItem.contains(scannedProcess) &&
         items[rawItem]!.contains(scannedProcess)) {
       setState(() {
         processing = true;
+        heldItem = '';
       });
       Timer(Duration(seconds: processWait[scannedProcess] ?? 0),
           () => handleProcessTimeout(splitItem, rawItem));

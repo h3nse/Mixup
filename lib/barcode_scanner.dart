@@ -25,7 +25,9 @@ class _BarcodeScannerWithoutControllerState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(scanResult),
+        title: (scanResult.isNotEmpty)
+            ? const Text('Ready to scan')
+            : const Text(''),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
