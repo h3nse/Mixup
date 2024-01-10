@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:mixup_app/scanner_error_widget.dart';
+import 'dart:async';
 
 class BarcodeScannerWithoutController extends StatefulWidget {
   const BarcodeScannerWithoutController({super.key});
@@ -28,8 +29,12 @@ class _BarcodeScannerWithoutControllerState
         title: (scanResult.isNotEmpty)
             ? const Text('Ready to scan')
             : const Text(''),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: (scanResult.isNotEmpty)
+            ? Colors.green[400]
+            : Theme.of(context).colorScheme.primary,
+        foregroundColor: (scanResult.isNotEmpty)
+            ? Colors.black
+            : Theme.of(context).colorScheme.inversePrimary,
       ),
       backgroundColor: Colors.black,
       body: Builder(
