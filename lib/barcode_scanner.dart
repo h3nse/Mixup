@@ -15,11 +15,30 @@ class _BarcodeScannerWithoutControllerState
     extends State<BarcodeScannerWithoutController>
     with SingleTickerProviderStateMixin {
   String scanResult = '';
+  bool isReadyToScan = false;
+  late Timer timer;
 
   void _updateResult(BarcodeCapture capture) {
     setState(() {
       scanResult = capture.barcodes.first.rawValue ?? '';
+      isReadyToScan = true;
     });
+  }
+
+  void _onTimerTimeout() {
+    if (!isReadyToScan) {
+      setState(() {
+        scanResult = '';
+      });
+    } else {
+      isReadyToScan = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    timer.cancel();
   }
 
   @override
@@ -48,6 +67,8 @@ class _BarcodeScannerWithoutControllerState
                 },
                 onDetect: (capture) {
                   _updateResult(capture);
+                  timer = Timer(
+                      const Duration(milliseconds: 1000), _onTimerTimeout);
                   // String result = capture.barcodes.first.rawValue ?? '';
                   // Future.microtask(() => Navigator.pop(context, result));
                 },
