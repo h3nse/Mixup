@@ -5,6 +5,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mixup_app/barcode_scanner.dart';
 import 'dart:async';
+import 'package:timer_count_down/timer_count_down.dart';
+import 'package:intl/intl.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env"); // Load .env variables
@@ -288,6 +290,7 @@ class GameRunning extends StatefulWidget {
 class _GameRunningState extends State<GameRunning> {
   String heldItem = '';
   String currentProcessingStatement = '';
+  int processTimer = 0;
   final itemDeclaration = '<item>';
   final processDeclaration = '<process>';
   Map<String, String> processStatements = {
@@ -391,6 +394,7 @@ class _GameRunningState extends State<GameRunning> {
         scannedProcess.toString();
         currentProcessingStatement =
             processStatements[scannedProcess] as String;
+        processTimer = processWait[scannedProcess] ?? 0;
       });
       Timer(Duration(seconds: processWait[scannedProcess] ?? 0),
           () => handleProcessTimeout(splitItem, rawItem));
@@ -427,7 +431,19 @@ class _GameRunningState extends State<GameRunning> {
             height: 200,
             child: (!processing)
                 ? _getImageFromItem()
-                : Text("$currentProcessingStatement..."),
+                : Column(
+                    children: [
+                      Text("$currentProcessingStatement...",
+                          style: const TextStyle(fontSize: 24)),
+                      Countdown(
+                        seconds: processTimer,
+                        build: (BuildContext context, double time) => Text(
+                          NumberFormat("0", "en_US").format(time).toString(),
+                          style: const TextStyle(fontSize: 100),
+                        ),
+                      ),
+                    ],
+                  ),
           ),
           (!processing)
               ? Row(
