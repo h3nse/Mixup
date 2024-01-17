@@ -287,8 +287,14 @@ class GameRunning extends StatefulWidget {
 
 class _GameRunningState extends State<GameRunning> {
   String heldItem = '';
+  String currentProcessingStatement = '';
   final itemDeclaration = '<item>';
   final processDeclaration = '<process>';
+  Map<String, String> processStatements = {
+    'cut': 'cutting',
+    'fry': 'frying',
+    'boil': 'boiling'
+  };
   // All items in the game, and which processes can be used on them.
   final items = {
     'Tomato': ['cut'],
@@ -382,6 +388,9 @@ class _GameRunningState extends State<GameRunning> {
       setState(() {
         processing = true;
         heldItem = '';
+        scannedProcess.toString();
+        currentProcessingStatement =
+            processStatements[scannedProcess] as String;
       });
       Timer(Duration(seconds: processWait[scannedProcess] ?? 0),
           () => handleProcessTimeout(splitItem, rawItem));
@@ -414,36 +423,42 @@ class _GameRunningState extends State<GameRunning> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          (processing) ? const Text('Processing...') : Container(),
-          const DishPreview(),
-          _getImageFromItem(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () async {
-                  String? result = await Navigator.of(context).push<String>(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const BarcodeScannerWithoutController(),
-                    ),
-                  );
-                  if (result != null) {
-                    _handleScan(result);
-                  }
-                },
-                child: const Text("Scan"),
-              ),
-              const SizedBox(
-                width: 50,
-              ),
-              ElevatedButton(
-                  onPressed: () {
-                    _setItem('');
-                  },
-                  child: const Text('Discard item'))
-            ],
+          SizedBox(
+            height: 200,
+            child: (!processing)
+                ? _getImageFromItem()
+                : Text("$currentProcessingStatement..."),
           ),
+          (!processing)
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        String? result =
+                            await Navigator.of(context).push<String>(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const BarcodeScannerWithoutController(),
+                          ),
+                        );
+                        if (result != null) {
+                          _handleScan(result);
+                        }
+                      },
+                      child: const Text("Scan"),
+                    ),
+                    const SizedBox(
+                      width: 50,
+                    ),
+                    ElevatedButton(
+                        onPressed: () {
+                          _setItem('');
+                        },
+                        child: const Text('Discard item'))
+                  ],
+                )
+              : Container(),
         ],
       ),
     );
