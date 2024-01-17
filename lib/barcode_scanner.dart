@@ -25,7 +25,8 @@ class _BarcodeScannerWithoutControllerState
     });
   }
 
-  void _onTimerTimeout() {
+  void _onTimerTimeout(Timer timer) {
+    print("Timeout");
     if (!isReadyToScan) {
       setState(() {
         scanResult = '';
@@ -33,6 +34,12 @@ class _BarcodeScannerWithoutControllerState
     } else {
       isReadyToScan = false;
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(const Duration(milliseconds: 250), _onTimerTimeout);
   }
 
   @override
@@ -67,8 +74,6 @@ class _BarcodeScannerWithoutControllerState
                 },
                 onDetect: (capture) {
                   _updateResult(capture);
-                  timer = Timer(
-                      const Duration(milliseconds: 1000), _onTimerTimeout);
                   // String result = capture.barcodes.first.rawValue ?? '';
                   // Future.microtask(() => Navigator.pop(context, result));
                 },
