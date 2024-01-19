@@ -294,9 +294,9 @@ class _GameRunningState extends State<GameRunning> {
   final itemDeclaration = '<item>';
   final processDeclaration = '<process>';
   Map<String, String> processStatements = {
-    'cut': 'cutting',
-    'fry': 'frying',
-    'boil': 'boiling'
+    'cut': 'Cutting',
+    'fry': 'Frying',
+    'boil': 'Boiling'
   };
   // All items in the game, and which processes can be used on them.
   final items = {
