@@ -24,6 +24,8 @@ Future<void> main() async {
   runApp(const MixupApp());
 }
 
+final supabase = Supabase.instance.client;
+
 /// Singleton for storing local information about the player. Name could be removed in future passes.
 class Player {
   static final Player _instance = Player._internal("", 0);
@@ -59,7 +61,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final supabase = Supabase.instance.client;
   final nameController = TextEditingController();
 
   void addPlayer() async {
@@ -122,14 +123,14 @@ class LevelSelect extends StatefulWidget {
 }
 
 class _LevelSelectState extends State<LevelSelect> {
-  final supabase = Supabase.instance.client;
-  final _lobbyStream = Supabase.instance.client.from('lobbies').stream(
+  final _lobbyStream = supabase.from('lobby_w_playercount').stream(
       primaryKey: ['id']); // Subscribing to stream of updates from database.
 
-  void _addPlayerToLevel(int lobbyid) async {
-    await supabase
-        .from('players')
-        .update({'lobby_id': lobbyid}).eq('id', Player().id);
+  void _addPlayerToLevel(int lobbyid, int playerCount) async {
+    await supabase.from('players').update({
+      'lobby_id': lobbyid,
+      'playerNumberInLobby': playerCount + 1
+    }).eq('id', Player().id);
   }
 
   @override
@@ -155,11 +156,11 @@ class _LevelSelectState extends State<LevelSelect> {
             itemBuilder: (context, index) {
               return ListTile(
                 title: Text(lobbies[index]['name']),
-                subtitle: const Text(
-                    "player count: "), // Doesnt actually display any number currently.
+                subtitle: Text(
+                    "player count: ${lobbies[index]['player_count']}"), // Doesnt actually display any number currently.
                 onTap: () {
                   final lobbyid = lobbies[index]['id'];
-                  _addPlayerToLevel(lobbyid);
+                  _addPlayerToLevel(lobbyid, lobbies[index]['player_count']);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -195,7 +196,6 @@ class Game extends StatefulWidget {
 class _GameState extends State<Game> {
   final level = Level();
   var gameState = 'Lobby';
-  final supabase = Supabase.instance.client;
 
   // Gets level details from database and assigns it to our level class.
   void _getLevel() async {
@@ -293,6 +293,7 @@ class _GameRunningState extends State<GameRunning> {
   int processTimer = 0;
   final itemDeclaration = '<item>';
   final processDeclaration = '<process>';
+  final playerDeclaration = '<player>';
   Map<String, String> processStatements = {
     'cut': 'Cutting',
     'fry': 'Frying',
@@ -332,10 +333,13 @@ class _GameRunningState extends State<GameRunning> {
   final processWait = {'cut': 3, 'fry': 6, 'boil': 10};
   bool processing = false;
 
-  void _setItem(String item) {
+  void _setItem(String item) async {
     setState(() {
       heldItem = item;
     });
+    await supabase
+        .from('players')
+        .update({'held_item': item}).eq('id', Player().id);
   }
 
   void _handleItemScan(String scannedItem) {
@@ -401,6 +405,8 @@ class _GameRunningState extends State<GameRunning> {
     }
   }
 
+  void _handlePlayerScan(String scannedPlayer) {}
+
   /// The data in the QR-codes start with a declaration <> of what type they are.
   void _handleScan(String scan) {
     if (itemDeclaration.matchAsPrefix(scan) != null) {
@@ -409,6 +415,9 @@ class _GameRunningState extends State<GameRunning> {
     } else if (processDeclaration.matchAsPrefix(scan) != null) {
       scan = scan.replaceAll('<process>', '');
       _handleProcessScan(scan);
+    } else if (playerDeclaration.matchAsPrefix(scan) != null) {
+      scan = scan.replaceAll('<player>', '');
+      _handlePlayerScan(scan);
     }
   }
 

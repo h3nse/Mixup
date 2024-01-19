@@ -26,7 +26,6 @@ class _BarcodeScannerWithoutControllerState
   }
 
   void _onTimerTimeout(Timer timer) {
-    print("Timeout");
     if (!isReadyToScan) {
       setState(() {
         scanResult = '';
