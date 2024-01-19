@@ -239,7 +239,9 @@ class _GameState extends State<Game> {
         );
         break;
       case 'Running':
-        page = const GameRunning();
+        page = GameRunning(
+          lobbyID: widget.lobbyID,
+        );
         break;
       case 'Ending':
         break;
@@ -281,7 +283,8 @@ class _LobbyState extends State<Lobby> {
 }
 
 class GameRunning extends StatefulWidget {
-  const GameRunning({super.key});
+  final int lobbyID;
+  const GameRunning({super.key, required this.lobbyID});
 
   @override
   State<GameRunning> createState() => _GameRunningState();
@@ -332,6 +335,22 @@ class _GameRunningState extends State<GameRunning> {
 
   final processWait = {'cut': 3, 'fry': 6, 'boil': 10};
   bool processing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    supabase.channel('players').on(
+        RealtimeListenTypes.postgresChanges,
+        ChannelFilter(
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'players',
+            filter: 'id=eq.${Player().id}'), (payload, [ref]) {
+      setState(() {
+        heldItem = payload['new']['held_item'];
+      });
+    }).subscribe();
+  }
 
   void _setItem(String item) async {
     setState(() {
@@ -405,7 +424,21 @@ class _GameRunningState extends State<GameRunning> {
     }
   }
 
-  void _handlePlayerScan(String scannedPlayer) {}
+  void _handlePlayerScan(int scannedPlayer) async {
+    if (heldItem != '') {
+      return;
+    }
+    final itemList = await supabase
+        .from('players')
+        .select('held_item')
+        .eq('playerNumberInLobby', scannedPlayer)
+        .eq('lobby_id', widget.lobbyID)
+        .single();
+    _setItem(itemList['held_item']);
+    await supabase
+        .from('players')
+        .update({'held_item': ''}).eq('playerNumberInLobby', scannedPlayer);
+  }
 
   /// The data in the QR-codes start with a declaration <> of what type they are.
   void _handleScan(String scan) {
@@ -417,7 +450,7 @@ class _GameRunningState extends State<GameRunning> {
       _handleProcessScan(scan);
     } else if (playerDeclaration.matchAsPrefix(scan) != null) {
       scan = scan.replaceAll('<player>', '');
-      _handlePlayerScan(scan);
+      _handlePlayerScan(int.parse(scan));
     }
   }
 
