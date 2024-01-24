@@ -156,8 +156,8 @@ class _LevelSelectState extends State<LevelSelect> {
             itemBuilder: (context, index) {
               return ListTile(
                 title: Text(lobbies[index]['name']),
-                subtitle: Text(
-                    "player count: ${lobbies[index]['player_count']}"), // Doesnt actually display any number currently.
+                subtitle:
+                    Text("player count: ${lobbies[index]['player_count']}"),
                 onTap: () {
                   final lobbyid = lobbies[index]['id'];
                   _addPlayerToLevel(lobbyid, lobbies[index]['player_count']);
@@ -375,7 +375,7 @@ class _GameRunningState extends State<GameRunning> {
       return a.compareTo(b);
     });
     splitItem.insert(0, rawItem);
-    heldItem = splitItem.join("_");
+    _setItem(splitItem.join("_"));
     processing = false;
     setState(() {});
   }
@@ -411,9 +411,9 @@ class _GameRunningState extends State<GameRunning> {
 
     if (!heldItem.contains(scannedProcess) &&
         items[rawItem]!.contains(scannedProcess)) {
+      _setItem('');
       setState(() {
         processing = true;
-        heldItem = '';
         scannedProcess.toString();
         currentProcessingStatement =
             processStatements[scannedProcess] as String;
