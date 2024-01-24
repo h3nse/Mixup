@@ -2,11 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:mixup_app/game_running.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mixup_app/barcode_scanner.dart';
 import 'dart:async';
-import 'package:timer_count_down/timer_count_down.dart';
-import 'package:intl/intl.dart';
+import 'player.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env"); // Load .env variables
@@ -25,19 +25,6 @@ Future<void> main() async {
 }
 
 final supabase = Supabase.instance.client;
-
-/// Singleton for storing local information about the player. Name could be removed in future passes.
-class Player {
-  static final Player _instance = Player._internal("", 0);
-  String name;
-  int id;
-
-  factory Player() {
-    return _instance;
-  }
-
-  Player._internal(this.name, this.id);
-}
 
 class MixupApp extends StatelessWidget {
   const MixupApp({super.key});
@@ -62,11 +49,26 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final nameController = TextEditingController();
+  bool validPlayerRegistration = false;
 
   void addPlayer() async {
-    await supabase
-        .from('players')
-        .insert({'player_name': Player().name, 'id': Player().id});
+    await supabase.from('players').insert({
+      'player_name': Player().name,
+      'id': Player().id,
+      'playerNumber': Player().playerNumber
+    });
+  }
+
+  void handlePlayerScan(scan) {
+    if ("<player>".matchAsPrefix(scan) == null) {
+      return;
+    }
+    scan = scan.replaceAll('<player>', '');
+    final playerNumber = int.parse(scan);
+    setState(() {
+      Player().playerNumber = playerNumber;
+      validPlayerRegistration = true;
+    });
   }
 
   // Remove from memory(?) when route changes
@@ -92,23 +94,41 @@ class _HomePageState extends State<HomePage> {
               labelText: ("Enter your username"),
             ),
           ),
+          (validPlayerRegistration)
+              ? Text("Player Number: ${Player().playerNumber.toString()}")
+              : Container(),
           ElevatedButton(
-            onPressed: () {
-              if (nameController.text == "") {
-                Player().name = "Unnamed";
-              } else {
-                Player().name = nameController.text;
-              }
-              addPlayer();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LevelSelect(),
-                ),
-              );
-            },
-            child: const Text("Play"),
-          ),
+              onPressed: () async {
+                String? result = await Navigator.of(context).push<String>(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const BarcodeScannerWithoutController(),
+                  ),
+                );
+                if (result != null) {
+                  handlePlayerScan(result);
+                }
+              },
+              child: const Text("Register player number")),
+          (validPlayerRegistration)
+              ? ElevatedButton(
+                  onPressed: () {
+                    if (nameController.text == "") {
+                      Player().name = "Unnamed";
+                    } else {
+                      Player().name = nameController.text;
+                    }
+                    addPlayer();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LevelSelect(),
+                      ),
+                    );
+                  },
+                  child: const Text("Play"),
+                )
+              : Container(),
         ],
       ),
     );
@@ -123,13 +143,12 @@ class LevelSelect extends StatefulWidget {
 }
 
 class _LevelSelectState extends State<LevelSelect> {
-  final _lobbyStream = supabase.from('lobby_w_playercount').stream(
+  final _lobbyStream = supabase.from('lobbies').stream(
       primaryKey: ['id']); // Subscribing to stream of updates from database.
 
-  void _addPlayerToLevel(int lobbyid, int playerCount) async {
+  void _addPlayerToLevel(int lobbyid) async {
     await supabase.from('players').update({
       'lobby_id': lobbyid,
-      'playerNumberInLobby': playerCount + 1
     }).eq('id', Player().id);
   }
 
@@ -156,11 +175,9 @@ class _LevelSelectState extends State<LevelSelect> {
             itemBuilder: (context, index) {
               return ListTile(
                 title: Text(lobbies[index]['name']),
-                subtitle:
-                    Text("player count: ${lobbies[index]['player_count']}"),
                 onTap: () {
                   final lobbyid = lobbies[index]['id'];
-                  _addPlayerToLevel(lobbyid, lobbies[index]['player_count']);
+                  _addPlayerToLevel(lobbyid);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -276,247 +293,6 @@ class _LobbyState extends State<Lobby> {
                 widget.startFunction();
               },
               child: const Text('Start')),
-        ],
-      ),
-    );
-  }
-}
-
-class GameRunning extends StatefulWidget {
-  final int lobbyID;
-  const GameRunning({super.key, required this.lobbyID});
-
-  @override
-  State<GameRunning> createState() => _GameRunningState();
-}
-
-class _GameRunningState extends State<GameRunning> {
-  String heldItem = '';
-  String currentProcessingStatement = '';
-  int processTimer = 0;
-  final itemDeclaration = '<item>';
-  final processDeclaration = '<process>';
-  final playerDeclaration = '<player>';
-  Map<String, String> processStatements = {
-    'cut': 'Cutting',
-    'fry': 'Frying',
-    'boil': 'Boiling'
-  };
-  // All items in the game, and which processes can be used on them.
-  final items = {
-    'Tomato': ['cut'],
-    'Spaghetti': ['boil'],
-    'Meat': ['cut', 'fry'],
-    'Egg': [
-      {
-        'prerequisites': {
-          'cut': ['boil'],
-        },
-        'negative prerequisites': {
-          'fry': ['boil']
-        }
-      },
-      'cut',
-      'fry',
-      'boil'
-    ],
-    'Cheese': [
-      {
-        'prerequisites': {
-          'fry': ['cut']
-        },
-        'negative prerequisites': {}
-      },
-      'cut',
-      'fry'
-    ],
-    'Salad': ['cut']
-  }; // TO DO Make class
-
-  final processWait = {'cut': 3, 'fry': 6, 'boil': 10};
-  bool processing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    supabase.channel('players').on(
-        RealtimeListenTypes.postgresChanges,
-        ChannelFilter(
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'players',
-            filter: 'id=eq.${Player().id}'), (payload, [ref]) {
-      setState(() {
-        heldItem = payload['new']['held_item'];
-      });
-    }).subscribe();
-  }
-
-  void _setItem(String item) async {
-    setState(() {
-      heldItem = item;
-    });
-    await supabase
-        .from('players')
-        .update({'held_item': item}).eq('id', Player().id);
-  }
-
-  void _handleItemScan(String scannedItem) {
-    if (heldItem != '') {
-      return;
-    } else {
-      _setItem(scannedItem);
-    }
-  }
-
-  void handleProcessTimeout(splitItem, rawItem) {
-    splitItem.remove(rawItem);
-    splitItem.sort((String a, String b) {
-      return a.compareTo(b);
-    });
-    splitItem.insert(0, rawItem);
-    _setItem(splitItem.join("_"));
-    processing = false;
-    setState(() {});
-  }
-
-  /// Formats the name of the item to include the process. Sorts processes alphabetically if there's multiple.
-  void _handleProcessScan(String scannedProcess) {
-    if (heldItem == '') {
-      return;
-    }
-    var splitItem = "${heldItem}_$scannedProcess".split('_');
-    final rawItem = splitItem[0];
-
-    if (items[rawItem]![0] is Map) {
-      var prerequisitesMap = items[rawItem]![0] as Map;
-      var prerequisites = prerequisitesMap['prerequisites'][scannedProcess];
-      if (prerequisites != null) {
-        for (var prerequisite in prerequisites) {
-          if (!splitItem.contains(prerequisite)) {
-            return;
-          }
-        }
-      }
-      var negPrerequisites =
-          prerequisitesMap['negative prerequisites'][scannedProcess];
-      if (negPrerequisites != null) {
-        for (var negPrerequisite in negPrerequisites) {
-          if (splitItem.contains(negPrerequisite)) {
-            return;
-          }
-        }
-      }
-    }
-
-    if (!heldItem.contains(scannedProcess) &&
-        items[rawItem]!.contains(scannedProcess)) {
-      _setItem('');
-      setState(() {
-        processing = true;
-        scannedProcess.toString();
-        currentProcessingStatement =
-            processStatements[scannedProcess] as String;
-        processTimer = processWait[scannedProcess] ?? 0;
-      });
-      Timer(Duration(seconds: processWait[scannedProcess] ?? 0),
-          () => handleProcessTimeout(splitItem, rawItem));
-    }
-  }
-
-  void _handlePlayerScan(int scannedPlayer) async {
-    if (heldItem != '') {
-      return;
-    }
-    final itemList = await supabase
-        .from('players')
-        .select('held_item')
-        .eq('playerNumberInLobby', scannedPlayer)
-        .eq('lobby_id', widget.lobbyID)
-        .single();
-    _setItem(itemList['held_item']);
-    await supabase
-        .from('players')
-        .update({'held_item': ''}).eq('playerNumberInLobby', scannedPlayer);
-  }
-
-  /// The data in the QR-codes start with a declaration <> of what type they are.
-  void _handleScan(String scan) {
-    if (itemDeclaration.matchAsPrefix(scan) != null) {
-      scan = scan.replaceAll('<item>', '');
-      _handleItemScan(scan);
-    } else if (processDeclaration.matchAsPrefix(scan) != null) {
-      scan = scan.replaceAll('<process>', '');
-      _handleProcessScan(scan);
-    } else if (playerDeclaration.matchAsPrefix(scan) != null) {
-      scan = scan.replaceAll('<player>', '');
-      _handlePlayerScan(int.parse(scan));
-    }
-  }
-
-  /// Images are placed in /assets and are named after a naming convention.
-  Image _getImageFromItem() {
-    String imagePath = 'assets/$heldItem.jpg';
-    if (heldItem == '') {
-      imagePath = 'assets/No_item.jpg';
-    }
-    return Image.asset(imagePath);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            height: 200,
-            child: (!processing)
-                ? _getImageFromItem()
-                : Column(
-                    children: [
-                      Text("$currentProcessingStatement...",
-                          style: const TextStyle(fontSize: 24)),
-                      Countdown(
-                        seconds: processTimer,
-                        build: (BuildContext context, double time) => Text(
-                          NumberFormat("0", "en_US").format(time).toString(),
-                          style: const TextStyle(fontSize: 100),
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-          (!processing)
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () async {
-                        String? result =
-                            await Navigator.of(context).push<String>(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const BarcodeScannerWithoutController(),
-                          ),
-                        );
-                        if (result != null) {
-                          _handleScan(result);
-                        }
-                      },
-                      child: const Text("Scan"),
-                    ),
-                    const SizedBox(
-                      width: 50,
-                    ),
-                    ElevatedButton(
-                        onPressed: () {
-                          _setItem('');
-                        },
-                        child: const Text('Discard item'))
-                  ],
-                )
-              : Container(),
         ],
       ),
     );
