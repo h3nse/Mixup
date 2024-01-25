@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:mixup_app/scanner_error_widget.dart';
+import 'package:mixup_app/Scanner/scanner_error_widget.dart';
 import 'dart:async';
 
 class BarcodeScannerWithoutController extends StatefulWidget {
@@ -38,7 +38,7 @@ class _BarcodeScannerWithoutControllerState
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(const Duration(milliseconds: 250), _onTimerTimeout);
+    timer = Timer.periodic(const Duration(milliseconds: 750), _onTimerTimeout);
   }
 
   @override

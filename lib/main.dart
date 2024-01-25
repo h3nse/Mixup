@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mixup_app/game_running.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:mixup_app/barcode_scanner.dart';
+import 'package:mixup_app/Scanner/barcode_scanner.dart';
 import 'dart:async';
 import 'player.dart';
 
