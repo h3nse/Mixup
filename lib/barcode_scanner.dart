@@ -38,7 +38,7 @@ class _BarcodeScannerWithoutControllerState
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(const Duration(milliseconds: 250), _onTimerTimeout);
+    timer = Timer.periodic(const Duration(milliseconds: 750), _onTimerTimeout);
   }
 
   @override
