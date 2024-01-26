@@ -20,7 +20,7 @@ class _LobbyState extends State<Lobby> {
   late int lobbyID;
   late final _playerStream;
 
-  void setupStream() {
+  void setup() {
     lobbyID = convertStringToNumbers(widget.lobbyCode);
     _playerStream = supabase
         .from('players')
@@ -32,7 +32,7 @@ class _LobbyState extends State<Lobby> {
   @override
   void initState() {
     super.initState();
-    setupStream();
+    setup();
   }
 
   @override

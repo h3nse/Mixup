@@ -23,39 +23,47 @@ class GameState extends StatefulWidget {
 
 class _GameStateState extends State<GameState> {
   late int lobbyID;
-  final level = Level();
+  // final level = Level();
   var gameState = 'Lobby';
 
   // Gets level details from database and assigns it to our level class.
-  void _getLevel() async {
-    var dbLevel = await supabase
-        .from('lobbies')
-        .select('levels(name, game_duration, dishes)')
-        .eq('id', lobbyID)
-        .single();
-    dbLevel = dbLevel['levels'];
+  // void _getLevel() async {
+  //   var dbLevel = await supabase
+  //       .from('lobbies')
+  //       .select('levels(name, game_duration, dishes)')
+  //       .eq('id', lobbyID)
+  //       .single();
+  //   dbLevel = dbLevel['levels'];
 
-    level.name = dbLevel['name'];
-    level.gameDuration = dbLevel['game_duration'];
-    level.dishes = dbLevel['dishes'];
-    setState(() {});
-  }
+  //   level.name = dbLevel['name'];
+  //   level.gameDuration = dbLevel['game_duration'];
+  //   level.dishes = dbLevel['dishes'];
+  //   setState(() {});
+  // }
 
   @override
   void initState() {
     lobbyID = convertStringToNumbers(widget.lobbyCode);
-    _getLevel();
+    // _getLevel();
     super.initState();
+    supabase.channel('lobbies').on(
+        RealtimeListenTypes.postgresChanges,
+        ChannelFilter(
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'lobbies',
+            filter: 'id=eq.$lobbyID'), (payload, [ref]) {
+      setState(() {
+        gameState = payload['new']['game_state'];
+      });
+    }).subscribe();
   }
 
   void _startGame() async {
     await supabase
         .from('lobbies')
         .update({'game_state': 'Running'}).eq('id', lobbyID);
-    setState(() {
-      // For testing. gameState should read from the database in the future.
-      gameState = 'Running';
-    });
+    setState(() {});
   }
 
   @override
