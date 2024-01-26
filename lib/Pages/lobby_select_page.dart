@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mixup_app/Global/player.dart';
 import 'package:mixup_app/Pages/game_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:math';
 
 final supabase = Supabase.instance.client;
 
@@ -13,51 +14,78 @@ class LobbySelectPage extends StatefulWidget {
 }
 
 class _LobbySelectPageState extends State<LobbySelectPage> {
-  final _lobbyStream = supabase.from('lobbies').stream(
-      primaryKey: ['id']); // Subscribing to stream of updates from database.
+  final int codeLength = 4;
+  final lobbyCodeController = TextEditingController();
 
-  void _addPlayerToLevel(int lobbyid) async {
+  void _addPlayerToLobby(int lobbyid) async {
     await supabase.from('players').update({
       'lobby_id': lobbyid,
     }).eq('id', Player().id);
   }
 
+  Future<String> _createLobby() async {
+    String code = generateRandomCode();
+    int id = convertStringToNumbers(code);
+    await supabase
+        .from('lobbies')
+        .insert({'id': id, 'level_id': 1}); // Starting off on level one
+    _addPlayerToLobby(id);
+    return code;
+  }
+
+  String generateRandomCode() {
+    final random = Random();
+    const availableChars =
+        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz';
+    final randomString = List.generate(codeLength,
+            (index) => availableChars[random.nextInt(availableChars.length)])
+        .join();
+    return randomString;
+  }
+
+  int convertStringToNumbers(String string) {
+    String numberString = '';
+    for (int i = 0; i < string.length; i++) {
+      numberString = [numberString, string.codeUnitAt(i).toString()].join();
+    }
+    return int.parse(numberString);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Select lobby"),
-      ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: _lobbyStream,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          final lobbies = snapshot.data!;
-
-          return ListView.builder(
-            itemCount: lobbies.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(lobbies[index]['name']),
-                onTap: () {
-                  final lobbyid = lobbies[index]['id'];
-                  _addPlayerToLevel(lobbyid);
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => GameState(lobbyID: lobbyid)));
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: const Text("Join or Host a lobby!"),
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            TextFormField(
+              controller: lobbyCodeController,
+              decoration: const InputDecoration(
+                labelText: ("Enter a lobby-code"),
+              ),
+            ),
+            ElevatedButton(onPressed: () {}, child: const Text('Join lobby')),
+            const Text(
+              'Or...',
+              style: TextStyle(fontSize: 24, fontStyle: FontStyle.italic),
+            ),
+            ElevatedButton(
+                onPressed: () async {
+                  String lobbyCode = await _createLobby();
+                  if (context.mounted) {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                GameState(lobbyCode: lobbyCode)));
+                  }
                 },
-              );
-            },
-          );
-        },
-      ),
-    );
+                child: const Text('Create a new lobby'))
+          ],
+        ));
   }
 }

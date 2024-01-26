@@ -13,14 +13,15 @@ class Level {
 }
 
 class GameState extends StatefulWidget {
-  final int lobbyID;
-  const GameState({super.key, required this.lobbyID});
+  final String lobbyCode;
+  const GameState({super.key, required this.lobbyCode});
 
   @override
   State<GameState> createState() => _GameStateState();
 }
 
 class _GameStateState extends State<GameState> {
+  late int lobbyID;
   final level = Level();
   var gameState = 'Lobby';
 
@@ -29,7 +30,7 @@ class _GameStateState extends State<GameState> {
     var dbLevel = await supabase
         .from('lobbies')
         .select('levels(name, game_duration, dishes)')
-        .eq('id', widget.lobbyID)
+        .eq('id', lobbyID)
         .single();
     dbLevel = dbLevel['levels'];
 
@@ -39,8 +40,17 @@ class _GameStateState extends State<GameState> {
     setState(() {});
   }
 
+  int convertStringToNumbers(String string) {
+    String numberString = '';
+    for (int i = 0; i < string.length; i++) {
+      numberString = [numberString, string.codeUnitAt(i).toString()].join();
+    }
+    return int.parse(numberString);
+  }
+
   @override
   void initState() {
+    lobbyID = convertStringToNumbers(widget.lobbyCode);
     _getLevel();
     super.initState();
   }
@@ -48,7 +58,7 @@ class _GameStateState extends State<GameState> {
   void _startGame() async {
     await supabase
         .from('lobbies')
-        .update({'game_state': 'Running'}).eq('id', widget.lobbyID);
+        .update({'game_state': 'Running'}).eq('id', lobbyID);
     setState(() {
       // For testing. gameState should read from the database in the future.
       gameState = 'Running';
@@ -67,7 +77,7 @@ class _GameStateState extends State<GameState> {
         break;
       case 'Running':
         page = GameRunning(
-          lobbyID: widget.lobbyID,
+          lobbyID: lobbyID,
         );
         break;
       case 'Ending':
