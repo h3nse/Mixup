@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:mixup_app/Global/player.dart';
 import 'package:mixup_app/Pages/game_state.dart';
@@ -17,7 +19,7 @@ class _LobbySelectPageState extends State<LobbySelectPage> {
   final int codeLength = 4;
   final lobbyCodeController = TextEditingController();
 
-  void _addPlayerToLobby(int lobbyid) async {
+  Future _addPlayerToLobby(int lobbyid) async {
     await supabase.from('players').update({
       'lobby_id': lobbyid,
     }).eq('id', Player().id);
@@ -65,10 +67,28 @@ class _LobbySelectPageState extends State<LobbySelectPage> {
             TextFormField(
               controller: lobbyCodeController,
               decoration: const InputDecoration(
-                labelText: ("Enter a lobby-code"),
+                labelText: ("Enter a lobby code"),
               ),
             ),
-            ElevatedButton(onPressed: () {}, child: const Text('Join lobby')),
+            ElevatedButton(
+                onPressed: () async {
+                  String attemptedCode = lobbyCodeController.text;
+                  if (attemptedCode == '') return;
+                  try {
+                    await _addPlayerToLobby(
+                        convertStringToNumbers(attemptedCode));
+                    if (context.mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              GameState(lobbyCode: attemptedCode),
+                        ),
+                      );
+                    }
+                  } catch (_) {}
+                },
+                child: const Text('Join lobby')),
             const Text(
               'Or...',
               style: TextStyle(fontSize: 24, fontStyle: FontStyle.italic),

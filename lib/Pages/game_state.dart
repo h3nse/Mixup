@@ -71,7 +71,7 @@ class _GameStateState extends State<GameState> {
     switch (gameState) {
       case 'Lobby':
         page = Lobby(
-          levelName: level.name,
+          levelCode: widget.lobbyCode,
           startFunction: _startGame,
         );
         break;

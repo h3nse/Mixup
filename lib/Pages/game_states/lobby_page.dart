@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 class Lobby extends StatefulWidget {
   const Lobby(
-      {super.key, required this.levelName, required this.startFunction});
+      {super.key, required this.levelCode, required this.startFunction});
 
-  final String levelName;
+  final String levelCode;
   final Function startFunction;
 
   @override
@@ -18,7 +18,7 @@ class _LobbyState extends State<Lobby> {
       appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(widget.levelName)),
+          title: Text("Lobby code: ${widget.levelCode}")),
       body: Column(
         children: [
           ElevatedButton(
