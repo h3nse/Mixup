@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:mixup_app/Global/player.dart';
 import 'package:mixup_app/Pages/game_state.dart';
@@ -32,6 +30,7 @@ class _LobbySelectPageState extends State<LobbySelectPage> {
         .from('lobbies')
         .insert({'id': id, 'level_id': 1}); // Starting off on level one
     _addPlayerToLobby(id);
+    Player().isHost = true;
     return code;
   }
 

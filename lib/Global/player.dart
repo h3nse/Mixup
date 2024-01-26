@@ -1,13 +1,14 @@
 /// Singleton for storing local information about the player. Name could be removed in future passes.
 class Player {
-  static final Player _instance = Player._internal("", 0, 0);
+  static final Player _instance = Player._internal("", 0, 0, false);
   String name;
   int id;
   int playerNumber;
+  bool isHost;
 
   factory Player() {
     return _instance;
   }
 
-  Player._internal(this.name, this.id, this.playerNumber);
+  Player._internal(this.name, this.id, this.playerNumber, this.isHost);
 }

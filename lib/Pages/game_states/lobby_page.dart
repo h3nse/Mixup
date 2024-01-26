@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mixup_app/Global/player.dart';
 
 class Lobby extends StatefulWidget {
   const Lobby(
@@ -21,11 +22,13 @@ class _LobbyState extends State<Lobby> {
           title: Text("Lobby code: ${widget.levelCode}")),
       body: Column(
         children: [
-          ElevatedButton(
-              onPressed: () {
-                widget.startFunction();
-              },
-              child: const Text('Start')),
+          (Player().isHost)
+              ? ElevatedButton(
+                  onPressed: () {
+                    widget.startFunction();
+                  },
+                  child: const Text('Start'))
+              : Container(),
         ],
       ),
     );
