@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mixup_app/Global/helper_functions.dart';
 import 'package:mixup_app/Global/player.dart';
 import 'package:mixup_app/Pages/game_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -42,14 +43,6 @@ class _LobbySelectPageState extends State<LobbySelectPage> {
             (index) => availableChars[random.nextInt(availableChars.length)])
         .join();
     return randomString;
-  }
-
-  int convertStringToNumbers(String string) {
-    String numberString = '';
-    for (int i = 0; i < string.length; i++) {
-      numberString = [numberString, string.codeUnitAt(i).toString()].join();
-    }
-    return int.parse(numberString);
   }
 
   @override

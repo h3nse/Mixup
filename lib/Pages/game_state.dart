@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mixup_app/Global/helper_functions.dart';
 import 'package:mixup_app/Pages/game_states/game_running_page.dart';
 import 'package:mixup_app/Pages/game_states/lobby_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -40,14 +41,6 @@ class _GameStateState extends State<GameState> {
     setState(() {});
   }
 
-  int convertStringToNumbers(String string) {
-    String numberString = '';
-    for (int i = 0; i < string.length; i++) {
-      numberString = [numberString, string.codeUnitAt(i).toString()].join();
-    }
-    return int.parse(numberString);
-  }
-
   @override
   void initState() {
     lobbyID = convertStringToNumbers(widget.lobbyCode);
@@ -71,7 +64,7 @@ class _GameStateState extends State<GameState> {
     switch (gameState) {
       case 'Lobby':
         page = Lobby(
-          levelCode: widget.lobbyCode,
+          lobbyCode: widget.lobbyCode,
           startFunction: _startGame,
         );
         break;
