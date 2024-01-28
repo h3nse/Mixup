@@ -46,17 +46,17 @@ class _GameStateState extends State<GameState> {
     lobbyID = convertStringToNumbers(widget.lobbyCode);
     // _getLevel();
     super.initState();
-    supabase.channel('lobbies').on(
-        RealtimeListenTypes.postgresChanges,
-        ChannelFilter(
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'lobbies',
-            filter: 'id=eq.$lobbyID'), (payload, [ref]) {
-      setState(() {
-        gameState = payload['new']['game_state'];
-      });
-    }).subscribe();
+    // supabase.channel('lobbies').on(
+    //     RealtimeListenTypes.postgresChanges,
+    //     ChannelFilter(
+    //         event: 'UPDATE',
+    //         schema: 'public',
+    //         table: 'lobbies',
+    //         filter: 'id=eq.$lobbyID'), (payload, [ref]) {
+    //   setState(() {
+    //     gameState = payload['new']['game_state'];
+    //   });
+    // }).subscribe();
   }
 
   void _startGame() async {

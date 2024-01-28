@@ -19,6 +19,16 @@ class _LobbySelectPageState extends State<LobbySelectPage> {
   final lobbyCodeController = TextEditingController();
 
   Future _addPlayerToLobby(int lobbyid) async {
+    final gameState = await supabase
+        .from('lobbies')
+        .select('game_state')
+        .eq('id', lobbyid)
+        .single() as Map;
+
+    if (gameState['game_state'] != 'Lobby') {
+      throw ();
+    }
+
     await supabase.from('players').update({
       'lobby_id': lobbyid,
     }).eq('id', Player().id);
