@@ -7,11 +7,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final supabase = Supabase.instance.client;
 
 /// For storing information about the current level.
-// class Level {
-//   String name = '';
-//   int gameDuration = 0;
-//   Map<String, dynamic> dishes = {};
-// }
+class Level {
+  String name = '';
+  int gameDuration = 0;
+  Map<String, dynamic> dishes = {};
+}
 
 class GameState extends StatefulWidget {
   final String lobbyCode;
@@ -46,17 +46,17 @@ class _GameStateState extends State<GameState> {
     lobbyID = convertStringToNumbers(widget.lobbyCode);
     // _getLevel();
     super.initState();
-    supabase.channel('lobbies').on(
-        RealtimeListenTypes.postgresChanges,
-        ChannelFilter(
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'lobbies',
-            filter: 'id=eq.$lobbyID'), (payload, [ref]) {
-      setState(() {
-        gameState = payload['new']['game_state'];
-      });
-    }).subscribe();
+    // supabase.channel('lobbies').on(
+    //     RealtimeListenTypes.postgresChanges,
+    //     ChannelFilter(
+    //         event: 'UPDATE',
+    //         schema: 'public',
+    //         table: 'lobbies',
+    //         filter: 'id=eq.$lobbyID'), (payload, [ref]) {
+    //   setState(() {
+    //     gameState = payload['new']['game_state'];
+    //   });
+    // }).subscribe();
   }
 
   void _startGame() async {
