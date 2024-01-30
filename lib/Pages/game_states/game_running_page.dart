@@ -6,6 +6,7 @@ import 'package:mixup_app/Scanner/barcode_scanner.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timer_count_down/timer_count_down.dart';
 import '../../Global/player.dart';
+import 'package:flutter_timer_countdown/flutter_timer_countdown.dart';
 
 final supabase = Supabase.instance.client;
 
@@ -18,6 +19,7 @@ class GameRunning extends StatefulWidget {
 }
 
 class _GameRunningState extends State<GameRunning> {
+  final int gameDurationMin = 5;
   String heldItem = '';
   String currentProcessingStatement = '';
   int processTimer = 0;
@@ -194,8 +196,20 @@ class _GameRunningState extends State<GameRunning> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          TimerCountdown(
+            format: CountDownTimerFormat.minutesSeconds,
+            enableDescriptions: false,
+            spacerWidth: 5,
+            timeTextStyle: const TextStyle(fontSize: 32),
+            endTime: DateTime.now().add(
+              Duration(minutes: gameDurationMin),
+            ),
+          ),
+          const SizedBox(
+            height: 250,
+          ),
           SizedBox(
             height: 200,
             child: (!processing)
