@@ -18,7 +18,7 @@ class Lobby extends StatefulWidget {
 
 class _LobbyState extends State<Lobby> {
   late int lobbyID;
-  late final _playerStream;
+  late Stream _playerStream;
 
   void setup() {
     lobbyID = convertStringToNumbers(widget.lobbyCode);

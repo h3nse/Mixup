@@ -12,7 +12,9 @@ final supabase = Supabase.instance.client;
 
 class GameRunning extends StatefulWidget {
   final int lobbyID;
-  const GameRunning({super.key, required this.lobbyID});
+  final Function endFunction;
+  const GameRunning(
+      {super.key, required this.lobbyID, required this.endFunction});
 
   @override
   State<GameRunning> createState() => _GameRunningState();
@@ -206,6 +208,9 @@ class _GameRunningState extends State<GameRunning> {
             endTime: DateTime.now().add(
               Duration(minutes: gameDurationMin),
             ),
+            onEnd: () {
+              widget.endFunction();
+            },
           ),
           const SizedBox(
             height: 250,

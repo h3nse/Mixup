@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mixup_app/Global/helper_functions.dart';
+import 'package:mixup_app/Pages/game_states/game_ending_page.dart';
 import 'package:mixup_app/Pages/game_states/game_running_page.dart';
 import 'package:mixup_app/Pages/game_states/lobby_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -59,10 +60,24 @@ class _GameStateState extends State<GameState> {
     }).subscribe();
   }
 
-  void _startGame() async {
+  void startGame() async {
     await supabase
         .from('lobbies')
         .update({'game_state': 'Running'}).eq('id', lobbyID);
+    setState(() {});
+  }
+
+  void endGame() async {
+    await supabase
+        .from('lobbies')
+        .update({'game_state': 'Ending'}).eq('id', lobbyID);
+    setState(() {});
+  }
+
+  void resetGame() async {
+    await supabase
+        .from('lobbies')
+        .update({'game_state': 'Lobby'}).eq('id', lobbyID);
     setState(() {});
   }
 
@@ -73,15 +88,19 @@ class _GameStateState extends State<GameState> {
       case 'Lobby':
         page = Lobby(
           lobbyCode: widget.lobbyCode,
-          startFunction: _startGame,
+          startFunction: startGame,
         );
         break;
       case 'Running':
         page = GameRunning(
           lobbyID: lobbyID,
+          endFunction: endGame,
         );
         break;
       case 'Ending':
+        page = GameEnding(
+          resetFunction: resetGame,
+        );
         break;
     }
     return page;
