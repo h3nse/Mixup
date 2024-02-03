@@ -57,7 +57,7 @@ class _GameStateState extends State<GameState> {
       setState(() {
         gameState = payload['new']['game_state'];
       });
-    }).subscribe();
+    }).subscribe(); // Change to Stream
   }
 
   void startGame() async {

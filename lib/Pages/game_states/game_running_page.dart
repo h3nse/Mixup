@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mixup_app/Global/items.dart';
 import 'package:mixup_app/Scanner/barcode_scanner.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timer_count_down/timer_count_down.dart';
@@ -171,17 +172,32 @@ class _GameRunningState extends State<GameRunning> {
         .update({'held_item': ''}).eq('playerNumber', scannedPlayer);
   }
 
+  void _handlePlateScan(int scannedPlate) async {
+    final plateID = await supabase
+        .from('plates')
+        .select('id')
+        .eq('lobby_id', widget.lobbyID)
+        .eq('plate_nr', scannedPlate)
+        .single();
+    await supabase.from('_plates_items').insert(
+        {'plate_id': plateID['id'], 'item_id': Items().getItemId(heldItem)});
+  }
+
   /// The data in the QR-codes start with a declaration <> of what type they are.
   void _handleScan(String scan) {
-    if (itemDeclaration.matchAsPrefix(scan) != null) {
-      scan = scan.replaceAll('<item>', '');
-      _handleItemScan(scan);
-    } else if (processDeclaration.matchAsPrefix(scan) != null) {
-      scan = scan.replaceAll('<process>', '');
-      _handleProcessScan(scan);
-    } else if (playerDeclaration.matchAsPrefix(scan) != null) {
-      scan = scan.replaceAll('<player>', '');
-      _handlePlayerScan(int.parse(scan));
+    final prefix = scan
+        .split('>')[0]
+        .replaceAll('<', ''); // TODO Change to declaration:value
+    scan = scan.split('>')[1];
+    switch (prefix) {
+      case 'item':
+        _handleItemScan(scan);
+      case 'process':
+        _handleProcessScan(scan);
+      case 'player':
+        _handlePlayerScan(int.parse(scan));
+      case 'plate':
+        _handlePlateScan(int.parse(scan));
     }
   }
 
