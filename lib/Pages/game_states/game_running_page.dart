@@ -179,8 +179,20 @@ class _GameRunningState extends State<GameRunning> {
         .eq('lobby_id', widget.lobbyID)
         .eq('plate_nr', scannedPlate)
         .single();
-    await supabase.from('_plates_items').insert(
-        {'plate_id': plateID['id'], 'item_id': Items().getItemId(heldItem)});
+
+    if (heldItem == '') {
+      submitPlate(plateID['id']);
+      return;
+    }
+    await supabase.from('_plates_items').insert({
+      'plate_id': plateID['id'],
+      'item_id': Items().getItemId(heldItem)
+    }); // TODO Add catch if adding the same item to the same plate
+    _setItem('');
+  }
+
+  void submitPlate(int plateID) async {
+    await supabase.from('_plates_items').delete().eq('plate_id', plateID);
   }
 
   /// The data in the QR-codes start with a declaration <> of what type they are.
