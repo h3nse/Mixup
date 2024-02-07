@@ -34,6 +34,7 @@ class _GameRunningState extends State<GameRunning> {
     'fry': 'Frying',
     'boil': 'Boiling'
   };
+  final processWait = {'cut': 3, 'fry': 6, 'boil': 10};
   // All items in the game, and which processes can be used on them.
   final items = {
     'Tomato': ['cut'],
@@ -63,9 +64,8 @@ class _GameRunningState extends State<GameRunning> {
       'fry'
     ],
     'Salad': ['cut']
-  }; // TO DO Make class
+  }; // TODO Make class
 
-  final processWait = {'cut': 3, 'fry': 6, 'boil': 10};
   bool processing = false;
 
   @override
@@ -120,6 +120,7 @@ class _GameRunningState extends State<GameRunning> {
     var splitItem = "${heldItem}_$scannedProcess".split('_');
     final rawItem = splitItem[0];
 
+    /// Prerequisite checks
     if (items[rawItem]![0] is Map) {
       var prerequisitesMap = items[rawItem]![0] as Map;
       var prerequisites = prerequisitesMap['prerequisites'][scannedProcess];
@@ -142,6 +143,8 @@ class _GameRunningState extends State<GameRunning> {
     }
 
     if (!heldItem.contains(scannedProcess) &&
+
+        ///TODO: include at beginning of function
         items[rawItem]!.contains(scannedProcess)) {
       _setItem('');
       setState(() {
@@ -160,13 +163,13 @@ class _GameRunningState extends State<GameRunning> {
     if (heldItem != '') {
       return;
     }
-    final itemList = await supabase
+    final item = await supabase
         .from('players')
         .select('held_item')
         .eq('playerNumber', scannedPlayer)
         .eq('lobby_id', widget.lobbyID)
         .single();
-    _setItem(itemList['held_item']);
+    _setItem(item['held_item']);
     await supabase
         .from('players')
         .update({'held_item': ''}).eq('playerNumber', scannedPlayer);
@@ -199,7 +202,7 @@ class _GameRunningState extends State<GameRunning> {
   void _handleScan(String scan) {
     final prefix = scan
         .split('>')[0]
-        .replaceAll('<', ''); // TODO Change to declaration:value
+        .replaceAll('<', ''); // TODO Change to: "declaration:value"
     scan = scan.split('>')[1];
     switch (prefix) {
       case 'item':
@@ -229,6 +232,7 @@ class _GameRunningState extends State<GameRunning> {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           TimerCountdown(
+            ///Fix so it stays loaded
             format: CountDownTimerFormat.minutesSeconds,
             enableDescriptions: false,
             spacerWidth: 5,
