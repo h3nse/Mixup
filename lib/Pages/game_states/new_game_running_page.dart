@@ -3,6 +3,7 @@ import 'package:mixup_app/Pages/game_states/game_running_widgets/buttons_below_i
 import 'package:mixup_app/Pages/game_states/game_running_widgets/dish_preview.dart';
 import 'package:mixup_app/Pages/game_states/game_running_widgets/game_timer.dart';
 import 'package:mixup_app/Pages/game_states/game_running_widgets/display_manager.dart';
+import 'package:provider/provider.dart';
 
 class MainGameScreen extends StatefulWidget {
   const MainGameScreen({super.key});
@@ -14,6 +15,7 @@ class MainGameScreen extends StatefulWidget {
 class _MainGameScreenState extends State<MainGameScreen> {
   @override
   Widget build(BuildContext context) {
+    final displayManager = Provider.of<DisplayManager>(context);
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -23,7 +25,7 @@ class _MainGameScreenState extends State<MainGameScreen> {
           const SizedBox(
             height: 100,
           ),
-          DisplayManager(),
+          SizedBox(height: 200, child: displayManager.itemImage),
           const SizedBox(
             height: 10,
           ),

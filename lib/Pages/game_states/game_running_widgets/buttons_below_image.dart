@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mixup_app/Pages/game_states/game_running_widgets/display_manager.dart';
+import 'package:provider/provider.dart';
 
 class ButtonsBelowImage extends StatefulWidget {
   const ButtonsBelowImage({super.key});
@@ -11,13 +13,19 @@ class _ButtonsBelowImageState extends State<ButtonsBelowImage> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 70,
-      width: 300,
-      child: Container(
-        alignment: const Alignment(0.0, 0.0),
-        decoration: BoxDecoration(border: Border.all(color: Colors.black)),
-        child: const Text("Buttons"),
-      ),
-    );
+        height: 70,
+        width: 300,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            ElevatedButton(onPressed: () {}, child: const Text('Scan')),
+            ElevatedButton(
+                onPressed: () {
+                  Provider.of<DisplayManager>(context, listen: false)
+                      .changeItemImage('');
+                },
+                child: const Text('Discard Item'))
+          ],
+        ));
   }
 }
