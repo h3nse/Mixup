@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:mixup_app/Pages/game_states/game_running_widgets/buttons_below_image.dart';
 import 'package:mixup_app/Pages/game_states/game_running_widgets/dish_preview.dart';
 import 'package:mixup_app/Pages/game_states/game_running_widgets/game_timer.dart';
-import 'package:mixup_app/Pages/game_states/game_running_widgets/display_manager.dart';
+import 'package:mixup_app/Pages/game_states/game_running_widgets/item_view.dart';
+import 'package:mixup_app/Pages/game_states/game_running_widgets/local_manager.dart';
+import 'package:mixup_app/Pages/game_states/game_running_widgets/processing_view.dart';
 import 'package:provider/provider.dart';
 
 class MainGameScreen extends StatefulWidget {
@@ -15,23 +16,20 @@ class MainGameScreen extends StatefulWidget {
 class _MainGameScreenState extends State<MainGameScreen> {
   @override
   Widget build(BuildContext context) {
-    final displayManager = Provider.of<DisplayManager>(context);
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          const GameTimer(),
-          const DishPreview(),
-          const SizedBox(
-            height: 100,
-          ),
-          SizedBox(height: 200, child: displayManager.itemImage),
-          const SizedBox(
-            height: 10,
-          ),
-          const ButtonsBelowImage(),
-        ],
-      ),
+      body: Consumer<LocalManager>(builder: (context, localManager, child) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const GameTimer(),
+            const DishPreview(),
+            const SizedBox(
+              height: 100,
+            ),
+            localManager.processing ? const ProcessingView() : const ItemView()
+          ],
+        );
+      }),
     );
   }
 }

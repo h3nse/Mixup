@@ -62,7 +62,7 @@ class _GameRunningState extends State<GameRunning> {
       'fry'
     ],
     'Salad': ['cut']
-  }; // TO DO Make class
+  }; // TODO Make class??
 
   final processWait = {'cut': 3, 'fry': 6, 'boil': 10};
   bool processing = false;
