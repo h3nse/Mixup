@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:mixup_app/Global/constants.dart';
 import 'package:mixup_app/Global/player.dart';
@@ -27,17 +25,6 @@ class _ButtonsBelowImageState extends State<ButtonsBelowImage> {
         Provider.of<LocalManager>(context, listen: false)
             .changeHeldItem(scannedItem);
       }
-    }
-
-    void handleProcessTimeout(splitItem, rawItem) {
-      splitItem.remove(rawItem);
-      splitItem.sort((String a, String b) {
-        return a.compareTo(b);
-      });
-      splitItem.insert(0, rawItem);
-      Provider.of<LocalManager>(context, listen: false)
-          .changeHeldItem(splitItem.join("_"));
-      Provider.of<LocalManager>(context, listen: false).changeProcessing(false);
     }
 
     /// Formats the name of the item to include the process. Sorts processes alphabetically if there's multiple.
