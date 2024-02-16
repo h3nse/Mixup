@@ -28,6 +28,12 @@ class LocalManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  void changeHeldItemLocally(String item) {
+    _heldItem = item;
+    Player().heldItem = item;
+    notifyListeners();
+  }
+
   void changeSplitItem(List<String> items) {
     _splitItem = items;
     notifyListeners();
