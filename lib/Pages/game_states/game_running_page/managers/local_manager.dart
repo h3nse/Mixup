@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mixup_app/Global/player.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+final supabase = Supabase.instance.client;
 
 class LocalManager extends ChangeNotifier {
   String _heldItem = '';
@@ -16,9 +19,12 @@ class LocalManager extends ChangeNotifier {
   String get processStatement => _processingStatement;
   int get processTimer => _processTimer;
 
-  void changeHeldItem(String item) {
+  void changeHeldItem(String item) async {
     _heldItem = item;
     Player().heldItem = item;
+    await supabase
+        .from('players')
+        .update({'held_item': item}).eq('id', Player().id);
     notifyListeners();
   }
 
