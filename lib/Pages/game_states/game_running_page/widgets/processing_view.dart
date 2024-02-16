@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:mixup_app/Pages/game_states/game_running_widgets/local_manager.dart';
+import 'package:mixup_app/Pages/game_states/game_running_page/managers/local_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:timer_count_down/timer_count_down.dart';
 

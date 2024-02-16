@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mixup_app/Global/constants.dart';
 import 'package:mixup_app/Global/player.dart';
-import 'package:mixup_app/Pages/game_states/game_running_widgets/local_manager.dart';
+import 'package:mixup_app/Pages/game_states/game_running_page/managers/local_manager.dart';
 import 'package:mixup_app/Scanner/barcode_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;

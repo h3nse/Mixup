@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mixup_app/Global/helper_functions.dart';
 import 'package:mixup_app/Pages/game_states/game_ending_page.dart';
-import 'package:mixup_app/Pages/game_states/new_game_running_page.dart';
+import 'package:mixup_app/Pages/game_states/game_running_page/new_game_running_page.dart';
 import 'package:mixup_app/Pages/game_states/lobby_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
