@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_timer_countdown/flutter_timer_countdown.dart';
+import 'package:mixup_app/Global/functions.dart';
 
 class GameTimer extends StatefulWidget {
   const GameTimer({super.key});
@@ -19,9 +20,11 @@ class _GameTimerState extends State<GameTimer> {
         spacerWidth: 5,
         timeTextStyle: const TextStyle(fontSize: 32),
         endTime: DateTime.now().add(
-          Duration(minutes: 5),
+          Duration(minutes: 1),
         ),
-        onEnd: () {},
+        onEnd: () {
+          changeGameState('Ending');
+        },
       ),
     );
   }

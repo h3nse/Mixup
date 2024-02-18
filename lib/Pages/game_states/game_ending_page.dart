@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mixup_app/Global/functions.dart';
 
 class GameEnding extends StatefulWidget {
-  const GameEnding({super.key, required this.resetFunction});
-
-  final Function resetFunction;
+  const GameEnding({super.key});
 
   @override
   State<GameEnding> createState() => _GameEndingState();
@@ -16,7 +15,7 @@ class _GameEndingState extends State<GameEnding> {
       body: Center(
           child: ElevatedButton(
               onPressed: () {
-                widget.resetFunction('Lobby');
+                changeGameState('Lobby');
               },
               child: const Text("Back to lobby"))),
     );

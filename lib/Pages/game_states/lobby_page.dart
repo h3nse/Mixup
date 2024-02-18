@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:mixup_app/Global/helper_functions.dart';
+import 'package:mixup_app/Global/functions.dart';
 import 'package:mixup_app/Global/player.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final supabase = Supabase.instance.client;
 
 class Lobby extends StatefulWidget {
-  const Lobby(
-      {super.key, required this.lobbyCode, required this.startFunction});
+  const Lobby({super.key, required this.lobbyCode});
 
   final String lobbyCode;
-  final Function startFunction;
 
   @override
   State<Lobby> createState() => _LobbyState();
@@ -48,7 +46,7 @@ class _LobbyState extends State<Lobby> {
           (Player().isHost)
               ? ElevatedButton(
                   onPressed: () {
-                    widget.startFunction('Running');
+                    changeGameState('Running');
                   },
                   child: const Text('Start'))
               : Container(),

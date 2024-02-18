@@ -78,6 +78,8 @@ class _ButtonsBelowImageState extends State<ButtonsBelowImage> {
       if (Player().heldItem != '') {
         return;
       }
+
+      /// Add try catch
       final itemList = await supabase
           .from('players')
           .select('held_item')

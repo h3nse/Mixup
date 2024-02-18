@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mixup_app/Global/helper_functions.dart';
+import 'package:mixup_app/Global/functions.dart';
 import 'package:mixup_app/Pages/game_states/game_ending_page.dart';
 import 'package:mixup_app/Pages/game_states/game_running_page/game_running_page.dart';
 import 'package:mixup_app/Pages/game_states/lobby_page.dart';
@@ -74,16 +74,13 @@ class _GameStateState extends State<GameState> {
       case 'Lobby':
         page = Lobby(
           lobbyCode: widget.lobbyCode,
-          startFunction: changeGameState,
         );
         break;
       case 'Running':
         page = const MainGameScreen();
         break;
       case 'Ending':
-        page = GameEnding(
-          resetFunction: changeGameState,
-        );
+        page = const GameEnding();
         break;
     }
     return page;

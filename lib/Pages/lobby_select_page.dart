@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mixup_app/Global/helper_functions.dart';
+import 'package:mixup_app/Global/functions.dart';
 import 'package:mixup_app/Global/player.dart';
 import 'package:mixup_app/Pages/game_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
