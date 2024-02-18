@@ -22,6 +22,7 @@ class _LobbySelectPageState extends State<LobbySelectPage> {
     await supabase.from('players').update({
       'lobby_id': lobbyid,
     }).eq('id', Player().id);
+    Player().lobbyId = lobbyid;
   }
 
   Future<String> _createLobby() async {
@@ -43,6 +44,12 @@ class _LobbySelectPageState extends State<LobbySelectPage> {
             (index) => availableChars[random.nextInt(availableChars.length)])
         .join();
     return randomString;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    lobbyCodeController.dispose();
   }
 
   @override

@@ -48,7 +48,7 @@ class _LobbyState extends State<Lobby> {
           (Player().isHost)
               ? ElevatedButton(
                   onPressed: () {
-                    widget.startFunction();
+                    widget.startFunction('Running');
                   },
                   child: const Text('Start'))
               : Container(),

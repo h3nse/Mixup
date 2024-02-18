@@ -19,12 +19,11 @@ Future<void> main() async {
     anonKey: dotenv.env['SUPA_ANON_KEY'] ?? '',
   );
 
-  Player().id = Random()
-      .nextInt(10000); // Set player ID. Just a random number for testing.
+  Player().id = Random().nextInt(10000); // TODO: Use uuid?
 
-  runApp(MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => LocalManager())],
-      child: const MixupApp()));
+  runApp(MultiProvider(providers: [
+    ChangeNotifierProvider(create: (_) => LocalManager()),
+  ], child: const MixupApp()));
 }
 
 final supabase = Supabase.instance.client;

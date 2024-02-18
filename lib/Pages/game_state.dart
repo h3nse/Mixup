@@ -24,8 +24,8 @@ class GameState extends StatefulWidget {
 
 class _GameStateState extends State<GameState> {
   late int lobbyID;
-  // final level = Level();
   var gameState = 'Lobby';
+  // final level = Level();
 
   // Gets level details from database and assigns it to our level class.
   // void _getLevel() async {
@@ -60,24 +60,10 @@ class _GameStateState extends State<GameState> {
     }).subscribe();
   }
 
-  void startGame() async {
+  void changeGameState(String gameState) async {
     await supabase
         .from('lobbies')
-        .update({'game_state': 'Running'}).eq('id', lobbyID);
-    setState(() {});
-  }
-
-  void endGame() async {
-    await supabase
-        .from('lobbies')
-        .update({'game_state': 'Ending'}).eq('id', lobbyID);
-    setState(() {});
-  }
-
-  void resetGame() async {
-    await supabase
-        .from('lobbies')
-        .update({'game_state': 'Lobby'}).eq('id', lobbyID);
+        .update({'game_state': gameState}).eq('id', lobbyID);
     setState(() {});
   }
 
@@ -88,7 +74,7 @@ class _GameStateState extends State<GameState> {
       case 'Lobby':
         page = Lobby(
           lobbyCode: widget.lobbyCode,
-          startFunction: startGame,
+          startFunction: changeGameState,
         );
         break;
       case 'Running':
@@ -96,7 +82,7 @@ class _GameStateState extends State<GameState> {
         break;
       case 'Ending':
         page = GameEnding(
-          resetFunction: resetGame,
+          resetFunction: changeGameState,
         );
         break;
     }

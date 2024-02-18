@@ -16,7 +16,7 @@ class _GameEndingState extends State<GameEnding> {
       body: Center(
           child: ElevatedButton(
               onPressed: () {
-                widget.resetFunction();
+                widget.resetFunction('Lobby');
               },
               child: const Text("Back to lobby"))),
     );

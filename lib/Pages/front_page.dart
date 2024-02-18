@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mixup_app/Global/constants.dart';
 import 'package:mixup_app/Pages/lobby_select_page.dart';
 import 'package:mixup_app/Scanner/barcode_scanner.dart';
 import 'package:mixup_app/Global/player.dart';
@@ -26,10 +27,10 @@ class _FrontPageState extends State<FrontPage> {
   }
 
   void handlePlayerScan(scan) {
-    if ("<player>".matchAsPrefix(scan) == null) {
+    if (Constants.playerDeclaration.matchAsPrefix(scan) == null) {
       return;
     }
-    scan = scan.replaceAll('<player>', '');
+    scan = scan.replaceAll(Constants.playerDeclaration, '');
     final playerNumber = int.parse(scan);
     setState(() {
       Player().playerNumber = playerNumber;
@@ -40,8 +41,8 @@ class _FrontPageState extends State<FrontPage> {
   // Remove from memory(?) when route changes
   @override
   void dispose() {
-    nameController.dispose();
     super.dispose();
+    nameController.dispose();
   }
 
   @override
