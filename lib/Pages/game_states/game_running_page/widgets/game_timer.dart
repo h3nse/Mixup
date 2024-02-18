@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_timer_countdown/flutter_timer_countdown.dart';
 
 class GameTimer extends StatefulWidget {
   const GameTimer({super.key});
@@ -12,10 +13,15 @@ class _GameTimerState extends State<GameTimer> {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 50,
-      child: Container(
-        alignment: const Alignment(0.0, 0.0),
-        decoration: BoxDecoration(border: Border.all(color: Colors.black)),
-        child: const Text("Game Timer"),
+      child: TimerCountdown(
+        format: CountDownTimerFormat.minutesSeconds,
+        enableDescriptions: false,
+        spacerWidth: 5,
+        timeTextStyle: const TextStyle(fontSize: 32),
+        endTime: DateTime.now().add(
+          Duration(minutes: 5),
+        ),
+        onEnd: () {},
       ),
     );
   }
