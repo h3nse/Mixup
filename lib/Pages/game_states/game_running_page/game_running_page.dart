@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mixup_app/Pages/game_states/game_running_page/managers/host_manager.dart';
 import 'package:mixup_app/Pages/game_states/game_running_page/widgets/dish_preview.dart';
 import 'package:mixup_app/Pages/game_states/game_running_page/widgets/game_timer.dart';
 import 'package:mixup_app/Pages/game_states/game_running_page/widgets/item_view.dart';
@@ -14,6 +15,12 @@ class MainGameScreen extends StatefulWidget {
 }
 
 class _MainGameScreenState extends State<MainGameScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<HostManager>(context, listen: false).setupOrderTimer();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

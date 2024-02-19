@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_timer_countdown/flutter_timer_countdown.dart';
 import 'package:mixup_app/Global/functions.dart';
+import 'package:mixup_app/Pages/game_states/game_running_page/managers/host_manager.dart';
+import 'package:provider/provider.dart';
 
 class GameTimer extends StatefulWidget {
   const GameTimer({super.key});
@@ -20,10 +22,11 @@ class _GameTimerState extends State<GameTimer> {
         spacerWidth: 5,
         timeTextStyle: const TextStyle(fontSize: 32),
         endTime: DateTime.now().add(
-          Duration(minutes: 1),
+          Duration(minutes: 5),
         ),
         onEnd: () {
           changeGameState('Ending');
+          Provider.of<HostManager>(context, listen: false).stopTimer();
         },
       ),
     );

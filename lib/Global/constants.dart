@@ -40,4 +40,6 @@ class Constants {
   };
 
   static const Map<String, int> processWait = {'cut': 3, 'fry': 6, 'boil': 10};
+
+  static const List<int> orderTimerInterval = [30, 60];
 }
